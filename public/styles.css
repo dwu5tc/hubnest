@@ -1,3 +1,32 @@
-* {
-	/*background-color: red;*/
+button {
+	height: 25px;
 }
+
+body {
+	margin: 0 auto;
+	width: 80%;
+}
+
+.contact-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.contact-number {
+	margin: 0 auto;
+	width: 75%;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.new-number {
+	margin: 0 auto;
+	width: 75%;
+}
+
+.new-contact {
+	margin-top: 25px;
+}
+

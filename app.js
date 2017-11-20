@@ -6,33 +6,93 @@ var express = require('express'),
 	urlencodedParser = bodyParser.urlencoded({ extended: false }),
 	jsonParser = bodyParser.json();
 
-// var connect = '';
 var Pool = pg.Pool;
-var	Client = pg.Client;
+// var	Client = pg.Client;
 
 var pool = new Pool({
 	user: 'dxwu55',
-	host: 'database.server.com',
+	host: 'localhost',
 	database: 'hubnest',
 	password: 'hubnest',
-	port: 5432,
-});
-
-pool.query('SELECT NOW()', function(err, res) {
-	console.log(err, res);
-	pool.end();
+	port: 5432
 });
 
 app.use(express.static('public')); // defaults to serving index.html (for static pages)
 app.use(jsonParser); // ???
 app.use(urlencodedParser); // ???
 
-app.get('/add', function(req, res) {
+app.get('/data', function(req, res) {
+	var text = 'SELECT pl.id, pl.name, pn.number, pt.type ' +
+				'FROM people pl ' +
+				'LEFT OUTER JOIN phone_nums pn ' +
+				'ON pl.id = pn.people_id ' +
+				'LEFT OUTER JOIN phone_types pt ' +
+				'ON pn.phone_types_id = pt.id';
 
+	pool.query(text, function(error, result) {
+		if (error) {
+			// handle
+			return;
+		}
+		else {
+			res.json(result.rows);
+		}
+	});
+});
+
+app.post('/person', function(req, res) {
+	var newPerson = req.body; // form submitted data can be accessed through req.body
+
+	var text = 'INSERT INTO people ' +
+			'VALUES($1) ' +
+			'RETURNING id';
+	var values = [newPerson.name];
+
+	pool.query(text, values, function(error, result) {
+		if (error) {
+			// handle 
+			return;
+		}
+		else {
+			var data = {
+				id: result.rows[0].id,
+				name: newPerson.name
+			};
+			res.status(201).json(data);
+		}
+	});
+});
+
+app.post('/phone/:id', function(req, res) {
+	var newPhone = req.body;
+
+	var text = 'INSERT INTO phone_nums(people_id, "number", phone_types_id) ' +
+				'VALUES ($1, $2, $3);';
+	var values = [newPhone.pId, newPhone.number, newPhone.type];
+
+	pool.query(text, values, function(error, result) {
+		if (error) {
+			console.log(error.stack);
+		}
+		else {
+			res.status(201).json(newPhone);
+		}
+	});
 });
 
 app.delete('/phone/:id', function(req, res) {
-	// delete phone
+	// var text = 'INSERT INTO phone_nums(people_id, "number", phone_types_id) ' +
+	// 			'VALUES ($1, $2, $3);';
+	// var values = [newPhone.pId, newPhone.number, newPhone.type];
+
+	pool.query(text, values, function(error, result) {
+		if (error) {
+			console.log(error.stack);
+		}
+		else {
+			res.status(201).json(newPhone);
+		}
+	});
 	res.sendStatus(200); 
 });
 
