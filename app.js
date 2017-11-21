@@ -147,10 +147,3 @@ app.delete('/person/:id', function(req, res) {
 app.listen(3000, function() {
 	console.log('LOP 3000');
 });
-
-// SELECT pl.id, pl.name, pn.number, pn.id, pt.type
-// FROM people pl
-// LEFT OUTER JOIN phone_nums pn
-// ON pl.id = pn.people_id
-// LEFT OUTER JOIN phone_types pt
-// ON pn.phone_types_id = pt.id;
