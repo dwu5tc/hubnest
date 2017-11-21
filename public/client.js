@@ -26,7 +26,8 @@ myApp.init = () => {
 				}
 				temp = {
 					type: currRow.type,
-					number: currRow.number
+					number: currRow.number,
+					id: currRow.pnid
 				};
 				people[people.length - 1].numbers.push(temp);
 			}
@@ -43,7 +44,8 @@ myApp.init = () => {
 						id: currRow.id,
 						numbers: [{
 							type: currRow.type,
-							number: currRow.number
+							number: currRow.number,
+							id: currRow.pnid
 						}]
 					});
 				}
@@ -64,10 +66,10 @@ myApp.init = () => {
 
 		const nums = person.numbers;
 		if (nums) {
-			const n = person.numbers.length;
+			const n = nums.length;
 			for (i; i < n; i++) {
 				numbersElement += `
-					<div class="contact-number">
+					<div class="contact-number" data-id="${nums[i].id}">
 						<p><strong>${nums[i].type} </strong>${nums[i].number}</p>
 						<button class="delete-number">X</button>
 					</div>`;
@@ -107,8 +109,6 @@ myApp.addNewPersonListener = () => {
 			url: '/person',
 			data: person
 		}).done((newPerson) => {
-			console.log(newPerson);
-			console.log(newPerson.id);
 			appendNewPerson(newPerson);
 		});
 		this.reset(); 
@@ -139,25 +139,22 @@ myApp.addNewPersonListener = () => {
 myApp.addNewPhoneListener = () => {
 	$('.contacts').on('submit', '.new-number', function(e) {
 		e.preventDefault();
-		const phone = $(this).serialize(),
-			target = $(this).parent().find('.contact-content'),
-			pId = $(this).parent().attr('data-id');
-		appendNewPhone.call(target, phone);
-		console.log(pId);
+		const phone = $(this).serialize() + '&pId=' + $(this).parent().attr('data-id'),
+			target = $(this).parent().find('.contact-content');
 
-		// $.ajax({
-		// 	type: 'POST',
-		// 	url: '/phone' + target.data('block'),
-		// 	data: phone 
-		// }).done((newPhone) => {
-		// 	appendNewPhone(newPhone).bind(form);
-		// });
+		$.ajax({
+			type: 'POST',
+			url: '/phone',
+			data: phone
+		}).done((newPhone) => {
+			appendNewPhone.call(target, newPhone);
+		});
 		this.reset(); 
 	});
 
 	function appendNewPhone(phone) {
 		$(this).append(`
-			<div class="contact-number">
+			<div class="contact-number" data-id="${phone.id}">
 				<p><strong>${phone.type} </strong>${phone.number}</p>
 				<button class="delete-number">X</button>
 			</div>`);
@@ -167,21 +164,33 @@ myApp.addNewPhoneListener = () => {
 myApp.addDeletePersonListener = () => {
 	$('.contacts').on('click', '.delete-person', function() {
 		const target = $(this).parent().parent();
-				pId = target.attr('data-id');
+				id = target.attr('data-id');
+
 		if (confirm('Delete?')) {
 			$.ajax({
 				type: 'DELETE',
-				url: '/person/' + pId,
+				url: '/person/' + id,
 			}).done(() => {
-				// do something here???
+				target.remove();
 			});
-			target.remove();
 		}
 	});
 };
 
 myApp.addDeleteNumberListener = () => {
+	$('.contacts').on('click', '.delete-number', function() {
+		const target = $(this).parent();
+				id = target.attr('data-id');
 
+		if (confirm('Delete?')) {
+			$.ajax({
+				type: 'DELETE',
+				url: '/phone/' + id,
+			}).done(() => {
+				target.remove();
+			});
+		}
+	});
 };
 
 $(() => {
@@ -189,4 +198,5 @@ $(() => {
 	myApp.addNewPersonListener();
 	myApp.addNewPhoneListener();
 	myApp.addDeletePersonListener();
+	myApp.addDeleteNumberListener();
 });
